@@ -1,0 +1,80 @@
+#include<stdio.h>
+#include<math.h>
+#define dt 0.001
+#define dx 0.1
+#define L 1.0
+#define r 1.0//alpha*dt/(dx*dx)<0.5
+#define alpha 1.0
+#define pi 3.14159
+int main()
+{
+    const int n=ceil(L/dx)+1;
+    double Aw,Ae,Ap;
+    double Tnum[6],Tan[6],time[6];
+    int i,mid,t,res,loc;
+    double location;
+    class system_variables
+    {
+        public:
+            double T[n],x[n],Tnew[n];
+    }f;
+    /*Analytical Solution stated in book at x=0.3*/
+    location=0.3;
+    Tan[0]=1.0026;
+    Tan[1]=.9984;
+    Tan[2]=.9467;
+    Tan[3]=.8713;
+    Tan[4]=.4403;
+    Tan[5]=.1875;
+    /*Initial Conditions*/
+    for(i=0;i<n;i++)
+    {
+        f.x[i]=dx*i;
+        f.T[i]=1;
+    }
+    loc=(int)ceil(location/dx);
+    printf("\nLocation of probe is %f",loc*dx);
+    printf("\nElement no. loc is %d",loc);
+    res=0;
+    Tnum[res]=f.T[loc];
+    time[res]=0;
+    res++;
+    printf("\nT at time %f and location %f is %f",t*dt,loc*dx,f.T[loc]);
+    /*Coefficients*/
+    Aw=alpha*dt/(dx*dx);
+    Ae=alpha*dt/(dx*dx);
+    Ap=1-2.0*alpha*dt/(dx*dx);
+    /*Solution*/
+    for(t=1;t<=1000;t++)
+    {
+        i=0;
+        //f.Tnew[i]=Aw*(-dx*f.T[i]+f.T[i])+Ap*f.T[i]+Ae*f.T[i+1];
+        f.Tnew[i]=f.T[i+1]/(1+dx);
+        for(i=1;i<n-1;i++)
+        {
+            f.Tnew[i]=Aw*f.T[i-1]+Ap*f.T[i]+Ae*f.T[i+1];
+        }
+        i=n-1;
+        f.Tnew[i]=Ae*(-2.0*dx*f.T[i]+f.T[i-1])+Ap*f.T[i]+Aw*f.T[i-1];
+        //f.Tnew[i]=Ae*(-dx*f.T[i]+f.T[i])+Ap*f.T[i]+Aw*f.T[i-1];
+        //f.Tnew[i]=Aw*f.T[i-1]+Ap*f.T[i]+Ae*f.T[i+1];
+        for(i=0;i<n;i++)
+        {
+            f.T[i]=f.Tnew[i];
+        }
+        if((t==(int)ceil(0.01/dt))||(t==(int)ceil(0.05/dt))||(t==(int)ceil(0.1/dt))||(t==(int)ceil(0.5/dt))||(t==(int)ceil(1.0/dt)))
+        {
+            printf("\nT at time %f and location %f is %f",t*dt,loc*dx,f.T[loc]);
+            time[res]=t*dt;
+            Tnum[res]=f.T[loc];
+            res++;
+        }
+    }
+    /*Comparison between analytical and num*/
+    printf("\nt \t\t FDS \t\t AS \t\t Diff \t\t Rel Error (%%)");
+    for(i=0;i<6;i++)
+    {
+        printf("\n%f \t %f \t %f \t %f \t %f",time[i],Tnum[i],Tan[i],fabs(Tnum[i]-Tan[i]),100.0*fabs(Tnum[i]-Tan[i])/Tan[i]);
+    }
+}
+
