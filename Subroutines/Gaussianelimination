@@ -1,0 +1,60 @@
+#include<stdio.h>
+#include<math.h>
+#define n 4
+double x[n];
+int gaussian(double A[n][n],double B[n])
+{
+    int i,j,k,a,b;
+    double r;
+    for(k=0;k<n-1;k++)
+    {
+        for(i=k+1;i<n;i++)
+        {
+            r=A[i][k]/A[k][k];
+            A[i][k]=0;
+            for(j=k+1;j<n;j++)
+            {
+                A[i][j]=A[i][j]-r*A[k][j];
+            }
+            B[i]=B[i]-r*B[k];
+
+        }
+    }
+    for(i=n-1;i>=0;i--)
+    {
+        x[i]=B[i];
+        for(j=n-1;j>i;j--)
+        {
+            x[i]-=A[i][j]*x[j];
+        }
+        x[i]=x[i]/A[i][i];
+        printf("\nx[%d] is %f",i,x[i]);
+    }
+    return 0;
+}
+int main()
+{
+    //int const n=4;
+    double A[n][n],B[n];
+    A[0][0]=1;
+    A[0][1]=1;
+    A[0][2]=1;
+    A[0][3]=1;
+    A[1][0]=1;
+    A[1][1]=-1;
+    A[1][2]=1;
+    A[1][3]=-1;
+    A[2][0]=2;
+    A[2][1]=3;
+    A[2][2]=1;
+    A[2][3]=1;
+    A[3][0]=1;
+    A[3][1]=-3;
+    A[3][2]=2;
+    A[3][3]=2;
+    B[0]=10;
+    B[1]=-2;
+    B[2]=15;
+    B[3]=9;
+    gaussian(A,B);
+}
