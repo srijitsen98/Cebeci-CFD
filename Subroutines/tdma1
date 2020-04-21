@@ -1,0 +1,48 @@
+#include<stdio.h>
+#include<math.h>
+const int n=4;
+double x[n];
+int tdma(double a, double b, double c, double B[n])
+{
+    int i,j,k;
+    double a1[n],b1[n],c1[n],d1[n],r;
+    for(i=1;i<n;i++)
+    {
+        a1[i]=a;
+        b1[i]=b;
+        c1[i]=c;
+        d1[i]=B[i];
+    }
+    c1[1]=c1[1]/a1[1];
+    d1[1]=d1[1]/a1[1];
+    a1[1]=1;
+
+    for(i=2;i<n;i++)
+    {
+        c1[i]=c1[i]/(a1[i]-c1[i-1]*b1[i]);
+        d1[i]=(d1[i]-d1[i-1]*b1[i])/(a1[i]-c1[i-1]*b1[i]);
+        a1[i]=1;
+    }
+    x[n-1]=d1[n-1];
+    for(i=n-2;i>=1;i--)
+    {
+        x[i]=d1[i]-c1[i]*x[i+1];
+    }
+    return 0;
+}
+int main()
+{
+    double a,b,c,A[4][4], B[4];
+    a=4;
+    b=1;
+    c=1;
+    B[1]=5;
+    B[2]=6;
+    B[3]=5;
+    tdma(a,b,c,B);
+    printf("\nX is \n");
+    for(int a=1;a<n;a++)
+    {
+        printf("%f\n",x[a]);
+    }
+}
