@@ -1,0 +1,180 @@
+#include<stdio.h>
+#include<math.h>
+#define dx 0.1
+#define dy 0.1
+#define L 1
+#define pi 3.14159
+const int n=(int)1/dx;
+double x[n];
+int tdma(double a, double b, double c, double B[n])
+{
+    int i,j,k;
+    double a1[n],b1[n],c1[n],d1[n],r;
+    for(i=1;i<n;i++)
+    {
+        a1[i]=a;
+        b1[i]=b;
+        c1[i]=c;
+        d1[i]=B[i];
+    }
+    c1[1]=c1[1]/a1[1];
+    d1[1]=d1[1]/a1[1];
+    a1[1]=1;
+
+    for(i=2;i<n;i++)
+    {
+        c1[i]=c1[i]/(a1[i]-c1[i-1]*b1[i]);
+        d1[i]=(d1[i]-d1[i-1]*b1[i])/(a1[i]-c1[i-1]*b1[i]);
+        a1[i]=1;
+    }
+    x[n-1]=d1[n-1];
+    for(i=n-2;i>=1;i--)
+    {
+        x[i]=d1[i]-c1[i]*x[i+1];
+    }
+    return 0;
+}
+int main()
+{
+    int it,i,j,nodex,nodey;
+    double a,b,c,d[n],T[n+1][n+1],Tan[n+1][n+1],beta,omega,thetax,thetay,err;
+    omega=1.0;
+    beta=dx/dy;
+    thetay=dx*dx/(2.0*(dx*dx+dy*dy));
+    thetax=dy*dy/(2.0*(dx*dx+dy*dy));
+    it=0;
+    err=10;
+    //Initialization of boundary values
+    //West
+    j=0;
+    for(i=0;i<=n;i++)
+    {
+        T[i][j]=0;
+    }
+    //East
+    j=n;
+    for(i=0;i<=n;i++)
+    {
+        T[i][j]=0;
+    }
+    //South
+    i=0;
+    for(j=1;j<n;j++)
+    {
+        T[i][j]=sin(pi*j*dy);
+    }
+    //North
+    i=n;
+    for(j=1;j<n;j++)
+    {
+        T[i][j]=exp(pi)*sin(pi*j*dy);
+    }
+    //initialization for central cells
+    for(i=1;i<n;i++)
+    {
+        for(j=1;j<n;j++)
+        {
+            T[i][j]=0;
+        }
+    }
+    //analytical solution
+    for(i=0;i<=n;i++)
+    {
+        for(j=0;j<=n;j++)
+        {
+            //T[i][j]=0;
+            Tan[i][j]=exp(pi*i*dx)*sin(pi*j*dy);
+        }
+    }
+    //mid values
+    while(err>1e-6)
+    {
+        //Sweep in y direction
+        b=-1;
+        a=omega+2;
+        c=-1;
+        for(j=1;j<n;j++)
+        {
+            i=1;
+            d[i]=omega*T[i][j]+beta*beta*(T[i][j-1]-2*T[i][j]+T[i][j+1])+T[i-1][j];
+            for(i=2;i<n-1;i++)
+            {
+                d[i]=omega*T[i][j]+beta*beta*(T[i][j-1]-2*T[i][j]+T[i][j+1]);
+            }
+            i=n-1;
+            d[i]=omega*T[i][j]+beta*beta*(T[i][j-1]-2*T[i][j]+T[i][j+1])+T[i+1][j];
+            tdma(a,b,c,d);
+            for(i=1;i<n;i++)
+            {
+                T[i][j]=x[i];
+            }
+        }
+        b=-beta*beta;
+        a=omega+2*beta*beta;
+        c=-beta*beta;
+        for(i=1;i<n;i++)
+        {
+            j=1;
+            d[j]=omega*T[i][j]+T[i-1][j]-2*T[i][j]+T[i+1][j]+T[i][j-1];
+            for(j=2;j<n-1;j++)
+            {
+                d[j]=omega*T[i][j]+T[i-1][j]-2*T[i][j]+T[i+1][j];
+            }
+            j=n-1;
+            d[j]=omega*T[i][j]+T[i-1][j]-2*T[i][j]+T[i+1][j]+T[i][j+1];
+            tdma(a,b,c,d);
+            for(j=1;j<n;j++)
+            {
+                T[i][j]=x[j];
+            }
+        }
+        //Residual definition
+        err=0;
+        for(i=1;i<n;i++)
+        {
+            for(j=1;j<n;j++)
+            {
+                if(err<fabs(T[i][j]-thetax*T[i+1][j]-thetax*T[i-1][j]-thetay*T[i][j-1]-thetay*T[i][j+1]))
+                {
+                    nodex=i;
+                    nodey=j;
+                    err=fabs(T[i][j]-thetax*T[i+1][j]-thetax*T[i-1][j]-thetay*T[i][j-1]-thetay*T[i][j+1]);
+                }
+            }
+        }
+
+        it++;
+        printf("\nIteration number %d Error %f %d %d",it,err,nodex,nodey);
+
+
+    }
+    printf("\nT final\n");
+    for(j=n;j>=0;j--)
+    {
+        for(i=0;i<=n;i++)
+            printf("%f ",T[i][j]);
+        printf("\n");
+    }
+    printf("\nValues of T at x=0.2");
+    i=2;
+    for(j=1;j<n;j++)
+    {
+        err=fabs(Tan[i][j]-T[i][j])*100.0/T[i][j];
+        printf("\ny %f Numerical Temperature %f Analytical Temperature %f Error %f%%",j*dy,T[i][j],Tan[i][j],err);
+    }
+    printf("\nValues of T at x=0.5");
+    i=5;
+    for(j=1;j<n;j++)
+    {
+        err=fabs(Tan[i][j]-T[i][j])*100.0/T[i][j];
+        printf("\ny %f Numerical Temperature %f Analytical Temperature %f Error %f%%",j*dy,T[i][j],Tan[i][j],err);
+    }
+    printf("\nValues of T at x=0.9");
+    i=9;
+    for(j=1;j<n;j++)
+    {
+        err=fabs(Tan[i][j]-T[i][j])*100.0/T[i][j];
+        printf("\ny %f Numerical Temperature %f Analytical Temperature %f Error %f%%",j*dy,T[i][j],Tan[i][j],err);
+    }
+
+}
